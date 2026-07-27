@@ -9,6 +9,7 @@ authors:
     affiliation: "Helsinki Institute of Life Science (HiLIFE), University of Helsinki"
     email: ruslan.kalendar@helsinki.fi
 repository-code: "https://github.com/rkalendar/RegisterAlgebra"
+doi: "10.5281/zenodo.21630724"
 abstract: >-
   Pure-Python reference implementation of Register Algebra, an exact integer
   and rational arithmetic in which an integer N is represented as a pair of
