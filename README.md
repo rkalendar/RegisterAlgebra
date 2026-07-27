@@ -1,3 +1,4 @@
+[![tests](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml/badge.svg)](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml)
 # RegisterAlgebra
 
 Reference implementation of **Register Algebra** — an exact integer and rational
