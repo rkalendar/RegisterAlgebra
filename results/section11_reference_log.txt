@@ -1,0 +1,16 @@
+E1  exhaustive |a|,|b|<=15: 923,521 pairs, 3,370,566 identities hold; kappa canonical on [-10^5,10^5]
+E2  randomized differential vs Fraction: 125,000 operand sets (32/64/128/256-bit), 875,000 operation checks, 0 discrepancies
+E3  literal operator counts: reg_add/sub = 2 ADD; reg_mul = 7 MUL + 2 ADD (4 of the MUL are full-precision products); value = 2 MUL + 1 ADD; canonicalize = 1 DIV + 1 MOD; gcd on 64-bit operands: 37.5 divisions on average
+E4  H_16: lazy denominator 45 bits; Algorithm 3 (reduced) 20 bits; ratio 2.2x
+E4  H_64: lazy denominator 296 bits; Algorithm 3 (reduced) 87 bits; ratio 3.4x
+E4  H_256: lazy denominator 1,684 bits; Algorithm 3 (reduced) 363 bits; ratio 4.6x
+E4  H_1024: lazy denominator 8,770 bits; Algorithm 3 (reduced) 1,479 bits; ratio 5.9x
+E5  CPython 3.12.3, single core
+    reg_mul     64-bit: canonical     0.330 us (3.78x), balanced     0.444 us (5.08x)  vs native     0.087 us
+    reg_mul   1024-bit: canonical     1.985 us (1.28x), balanced     6.283 us (4.07x)  vs native     1.545 us
+    reg_mul  16384-bit: canonical   148.033 us (1.03x), balanced   591.542 us (4.10x)  vs native   144.256 us
+    rational chain (2000 ops, final denominator 107,903 bits), per op:
+      Algorithm 3 verbatim   5371.08 us   (64.59x Fraction)
+      optimised (Knuth)       165.46 us   ( 1.99x Fraction)
+      fractions.Fraction       83.16 us
+ALL CHECKS PASSED in 44.2s

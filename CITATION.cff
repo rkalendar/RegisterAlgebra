@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+title: "RegisterAlgebra: reference implementation of exact register arithmetic"
+message: "If you use this software, please cite both the software and the article below."
+type: software
+authors:
+  - family-names: Kalendar
+    given-names: Ruslan
+    orcid: "https://orcid.org/0000-0003-3986-2460"
+    affiliation: "Helsinki Institute of Life Science (HiLIFE), University of Helsinki"
+    email: ruslan.kalendar@helsinki.fi
+repository-code: "https://github.com/rkalendar/RegisterAlgebra"
+abstract: >-
+  Pure-Python reference implementation of Register Algebra, an exact integer
+  and rational arithmetic in which an integer N is represented as a pair of
+  integer registers (a, b) with N = 2a + 3b, and a rational is kept as an
+  unevaluated image of division. Includes a script reproducing the empirical
+  evaluation reported in the accompanying article.
+keywords:
+  - exact arithmetic
+  - rational arithmetic
+  - computer algebra
+  - number representation
+  - field of fractions
+  - reproducible research
+license: MIT
+version: 1.0.0
+date-released: "2026-07-27"
+preferred-citation:
+  type: article
+  title: "Register Algebra: Numbers as Linear Functions of Two Bases for Exact Integer and Rational Arithmetic"
+  authors:
+    - family-names: Kalendar
+      given-names: Ruslan
+      orcid: "https://orcid.org/0000-0003-3986-2460"
+  year: 2026
+  # journal: ""
+  # doi: ""
