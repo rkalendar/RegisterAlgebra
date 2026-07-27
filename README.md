@@ -1,5 +1,8 @@
-[![tests](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml/badge.svg)](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml)
 # RegisterAlgebra
+
+[![tests](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml/badge.svg)](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21630724.svg)](https://doi.org/10.5281/zenodo.21630724)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Reference implementation of **Register Algebra** — an exact integer and rational
 arithmetic in which every integer `N` is represented as a pair of integer
@@ -104,9 +107,18 @@ construction — not performance.
 
 ## Citing
 
-If you use this code, please cite the article (see `CITATION.cff`, or the
-"Cite this repository" button on GitHub). The archived, versioned snapshot of
-this repository carries its own DOI via Zenodo.
+If you use this code, please cite both the software and the article. GitHub's
+"Cite this repository" button renders the entry from `CITATION.cff`.
+
+Software (all versions, resolves to the latest):
+
+> Kalendar, R. (2026). *RegisterAlgebra: reference implementation of exact
+> register arithmetic* [Computer software]. Zenodo.
+> https://doi.org/10.5281/zenodo.21630724
+
+The DOI above is the concept DOI; version 1.0.0 specifically is archived at
+https://doi.org/10.5281/zenodo.21630725. Releases are also preserved in
+[Software Heritage](https://archive.softwareheritage.org/).
 
 ## License
 
