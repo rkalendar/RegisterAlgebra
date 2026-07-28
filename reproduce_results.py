@@ -1,6 +1,7 @@
 """reproduce_results.py — reproduces every number in Section 11 of the paper.
 
-Usage:  python3 reproduce_results.py          (runs in ~1-2 minutes)
+Usage:  python3 reproduce_results.py          (full suite, ~45 s on one core)
+        python3 reproduce_results.py e1 e4    (any subset, in the given order)
 
 Experiments
   E1  exhaustive homomorphism check on small registers
@@ -203,7 +204,11 @@ if __name__ == "__main__":
     t0 = time.perf_counter()
     phases = dict(e1=e1_exhaustive, e2=e2_differential, e3=e3_opcounts,
                   e4=e4_growth, e5=e5_timing)
-    todo = sys.argv[1:] or list(phases)
+    todo = [a.lower() for a in sys.argv[1:]] or list(phases)
+    unknown = [name for name in todo if name not in phases]
+    if unknown:
+        sys.exit("unknown experiment: %s\nvalid names are: %s"
+                 % (", ".join(unknown), ", ".join(phases)))
     for name in todo:
         phases[name]()
     print(f"ALL CHECKS PASSED in {time.perf_counter()-t0:.1f}s")
