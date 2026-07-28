@@ -4,7 +4,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21630724.svg)](https://doi.org/10.5281/zenodo.21630724)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-🌐 **Online version:** <[https://digitalgens.org/algebra.html](https://digitalgens.org/algebra.html)>
+🌐 **Online version:** (https://digitalgens.org/algebra.html)>
 
 Reference implementation of **Register Algebra** — an exact integer and rational
 arithmetic in which every integer `N` is represented as a pair of integer
