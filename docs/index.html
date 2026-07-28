@@ -1,1 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register Algebra — interactive demonstration</title>
+<meta name="description" content="Interactive demonstration of Register Algebra: every integer is a pair of registers (a, b) evaluated as 2a + 3b, every rational is an unevaluated pair of pairs. Computed with BigInt only — no floating point.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E4EBEF;
+    --panel:#FCFDFD;
+    --ink:#0F1F2B;
+    --ink-soft:#546675;
+    --rule:#C4D2DB;
+    --base2:#2E41BE;          /* the a register — coefficient 2 */
+    --base3:#8F5209;          /* the b register — coefficient 3 */
+    --mark:#A81B34;           /* the one place a division happens */
+    --serif:"Spectral",Georgia,"Times New Roman",serif;
+    --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+    --cond:"IBM Plex Sans Condensed","Helvetica Neue",Arial,sans-serif;
+    --gap:clamp(1.5rem,4vw,2.75rem);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);font-size:17px;line-height:1.62;
+    font-variant-numeric:lining-nums tabular-nums;
+  }
+  .wrap{max-width:60rem;margin:0 auto;padding:0 var(--gap) 5rem}
+  a{color:var(--base2);text-underline-offset:.18em;text-decoration-thickness:.06em}
+  a:hover{color:var(--mark)}
+  :focus-visible{outline:2px solid var(--base2);outline-offset:3px;border-radius:2px}
 
+  /* ---------- masthead ---------- */
+  header.top{padding:clamp(3rem,8vw,5.5rem) 0 2.25rem}
+  .eyebrow{
+    font-family:var(--cond);font-weight:600;font-size:.76rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);margin:0 0 1.1rem
+  }
+  h1{
+    font-family:var(--serif);font-weight:600;font-size:clamp(2.1rem,6vw,3.4rem);
+    line-height:1.06;letter-spacing:-.015em;margin:0 0 1rem;max-width:16ch
+  }
+  h1 .n2{color:var(--base2)}
+  h1 .n3{color:var(--base3)}
+  .lede{font-size:clamp(1rem,2.2vw,1.14rem);color:var(--ink-soft);max-width:56ch;margin:0}
+  .lede strong{color:var(--ink);font-weight:600}
+
+  /* ---------- hero tape ---------- */
+  .tape{
+    margin:2.5rem 0 .75rem;display:flex;gap:.6rem;align-items:stretch;
+    overflow-x:auto;padding-bottom:.75rem;scrollbar-width:thin
+  }
+  .station{
+    flex:0 0 auto;min-width:9.5rem;background:var(--panel);
+    border:1px solid var(--rule);border-radius:3px;padding:.7rem .85rem .8rem;
+    opacity:0;transform:translateY(6px);animation:rise .5s ease forwards
+  }
+  .station.is-mark{border-color:var(--mark);box-shadow:inset 3px 0 0 var(--mark)}
+  @keyframes rise{to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .station{animation:none;opacity:1;transform:none}
+  }
+  .station .cap{
+    font-family:var(--cond);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:.4rem;white-space:nowrap
+  }
+  .station.is-mark .cap{color:var(--mark)}
+  .arrow{flex:0 0 auto;align-self:center;color:var(--rule);font-family:var(--mono);font-size:1.1rem}
+  .tape-note{
+    font-family:var(--cond);font-size:.82rem;color:var(--ink-soft);
+    border-left:2px solid var(--mark);padding-left:.7rem;max-width:52ch;margin:0
+  }
+
+  /* ---------- register glyphs ---------- */
+  .reg{font-family:var(--mono);font-size:.95rem;font-weight:500;white-space:nowrap}
+  .reg .b{color:var(--rule)}
+  .reg .a-val{color:var(--base2)}
+  .reg .b-val{color:var(--base3)}
+  .phi{font-family:var(--mono);font-size:.78rem;color:var(--ink-soft);display:block;margin-top:.15rem}
+  .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.35}
+  .frac > span:first-child{border-bottom:1px solid var(--rule);padding-bottom:.1rem}
+  .frac > span:last-child{padding-top:.1rem}
+
+  /* ---------- sections ---------- */
+  section{border-top:1px solid var(--rule);padding:2.75rem 0 0;margin-top:2.75rem}
+  .sec-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.9rem;margin-bottom:.35rem}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(1.3rem,3vw,1.6rem);margin:0;letter-spacing:-.01em}
+  .ref{
+    font-family:var(--cond);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-soft);border:1px solid var(--rule);border-radius:2px;padding:.12rem .45rem
+  }
+  .sec-lede{color:var(--ink-soft);max-width:62ch;margin:.35rem 0 1.5rem}
+
+  /* ---------- controls ---------- */
+  .controls{display:flex;flex-wrap:wrap;gap:.85rem 1.1rem;align-items:flex-end;margin-bottom:1.4rem}
+  .field{display:flex;flex-direction:column;gap:.3rem}
+  .field label{
+    font-family:var(--cond);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)
+  }
+  input[type=text],select{
+    font-family:var(--mono);font-size:.98rem;color:var(--ink);background:var(--panel);
+    border:1px solid var(--rule);border-radius:2px;padding:.5rem .6rem;min-width:8.5rem
+  }
+  input[type=text]:focus,select:focus{border-color:var(--base2);outline:none;box-shadow:0 0 0 2px rgba(46,65,190,.16)}
+  select{min-width:11rem}
+  button{
+    font-family:var(--cond);font-weight:600;font-size:.86rem;letter-spacing:.06em;
+    background:var(--ink);color:var(--panel);border:1px solid var(--ink);
+    border-radius:2px;padding:.58rem 1.1rem;cursor:pointer
+  }
+  button:hover{background:var(--base2);border-color:var(--base2)}
+  .err{color:var(--mark);font-family:var(--cond);font-size:.85rem;margin:.4rem 0 0;min-height:1.2em}
+
+  /* ---------- panels ---------- */
+  .panel{background:var(--panel);border:1px solid var(--rule);border-radius:3px}
+  .step{border-bottom:1px solid var(--rule);padding:.95rem 1.1rem;display:grid;gap:.55rem}
+  .step:last-child{border-bottom:0}
+  .step.is-mark{box-shadow:inset 3px 0 0 var(--mark)}
+  .step-title{
+    font-family:var(--cond);font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)
+  }
+  .step.is-mark .step-title{color:var(--mark)}
+  .step-rows{display:grid;gap:.4rem}
+  .row{display:flex;flex-wrap:wrap;gap:.5rem .8rem;align-items:baseline}
+  .row .k{font-family:var(--mono);font-size:.8rem;color:var(--ink-soft);min-width:9.5rem}
+  .step-note{font-size:.92rem;color:var(--ink-soft);margin:0}
+  .result{
+    display:flex;flex-wrap:wrap;align-items:center;gap:.9rem;
+    padding:1rem 1.1rem;background:#F2F6F8;border-top:1px solid var(--rule)
+  }
+  .result .lbl{font-family:var(--cond);font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+  .result .val{font-family:var(--mono);font-size:1.15rem;font-weight:600}
+
+  /* ---------- counters ---------- */
+  .tally{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.1rem}
+  .chip{
+    font-family:var(--mono);font-size:.82rem;background:var(--panel);
+    border:1px solid var(--rule);border-radius:2px;padding:.3rem .6rem
+  }
+  .chip b{font-weight:600}
+  .chip.mul b{color:var(--base2)}
+  .chip.add b{color:var(--base3)}
+  .chip.div b{color:var(--mark)}
+
+  /* ---------- encoder ---------- */
+  .enc-out{display:flex;flex-wrap:wrap;gap:1.4rem;align-items:center;padding:1.1rem}
+  .enc-eq{font-family:var(--mono);font-size:1.05rem}
+  .enc-eq .c2{color:var(--base2)}
+  .enc-eq .c3{color:var(--base3)}
+
+  /* ---------- chart ---------- */
+  .chart-wrap{padding:1.1rem}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .ax{stroke:var(--rule);stroke-width:1}
+  .grid{stroke:var(--rule);stroke-width:.5;stroke-dasharray:2 3}
+  .tick{font-family:var(--mono);font-size:10px;fill:var(--ink-soft)}
+  .plot-lazy{fill:none;stroke:var(--base3);stroke-width:2}
+  .plot-red{fill:none;stroke:var(--base2);stroke-width:2}
+  .legend{display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:.8rem;font-family:var(--cond);font-size:.84rem;color:var(--ink-soft)}
+  .swatch{display:inline-block;width:1.6rem;height:0;border-top:2px solid;margin-right:.45rem;vertical-align:middle}
+  .slider-row{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;margin-bottom:1rem}
+  input[type=range]{accent-color:var(--base2);flex:1 1 14rem;min-width:12rem}
+
+  /* ---------- validation ---------- */
+  .checks{list-style:none;margin:0;padding:0}
+  .checks li{
+    display:flex;flex-wrap:wrap;gap:.4rem .9rem;align-items:baseline;
+    border-bottom:1px solid var(--rule);padding:.7rem 1.1rem
+  }
+  .checks li:last-child{border-bottom:0}
+  .checks .what{flex:1 1 20rem}
+  .checks .cnt{font-family:var(--mono);font-size:.85rem;color:var(--ink-soft)}
+  .checks .st{font-family:var(--cond);font-size:.78rem;letter-spacing:.09em;text-transform:uppercase}
+  .st.pending{color:var(--ink-soft)}
+  .st.pass{color:var(--base2)}
+  .st.fail{color:var(--mark)}
+  .total{font-family:var(--cond);font-size:.86rem;color:var(--ink-soft);margin-top:.9rem}
+
+  footer{border-top:1px solid var(--rule);margin-top:3rem;padding-top:1.6rem;font-size:.92rem;color:var(--ink-soft)}
+  footer p{margin:.3rem 0}
+  code{font-family:var(--mono);font-size:.9em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">Register Algebra · interactive demonstration</p>
+  <h1>Every number here is <span class="n2">two</span> integers, read as <span class="n2">2a</span> + <span class="n3">3b</span>.</h1>
+  <p class="lede">An integer is a register pair. A rational is a pair of pairs, kept as the image of a division that is never carried out. This page runs the paper's algorithms in your browser on <strong>BigInt</strong> only — no floating-point number is created at any point.</p>
+
+  <div class="tape" id="tape" aria-label="Worked trace of (1/3 + 1/6) × 2"></div>
+  <p class="tape-note">Division appears exactly once in the whole computation — at the marked station, where the greatest common divisor cancels the fraction. Everything before it is addition and multiplication of integers.</p>
+</header>
+
+<section>
+  <div class="sec-head"><h2>Encode an integer</h2><span class="ref">§3 canonical form</span></div>
+  <p class="sec-lede">Canonicalisation sends every integer to the unique pair whose second register is 0 or 1: even numbers to (N/2, 0), odd numbers to ((N−3)/2, 1). Try a negative number, or something with two hundred digits.</p>
+
+  <div class="controls">
+    <div class="field">
+      <label for="enc-in">Integer</label>
+      <input type="text" id="enc-in" value="-7" spellcheck="false" autocomplete="off" inputmode="numeric">
+    </div>
+    <button id="enc-go" type="button">Encode</button>
+  </div>
+  <p class="err" id="enc-err" role="status"></p>
+  <div class="panel"><div class="enc-out" id="enc-out"></div></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Compute with fractions</h2><span class="ref">§8 algorithms 1–3</span></div>
+  <p class="sec-lede">Every intermediate value below is a register pair. The operation counter tallies integer operations exactly as Table 5 of the paper counts them: seven multiplications and two additions for each register product.</p>
+
+  <div class="controls">
+    <div class="field">
+      <label for="fa">First value</label>
+      <input type="text" id="fa" value="1/3" spellcheck="false" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="op">Operation</label>
+      <select id="op">
+        <option value="add">add &nbsp;⊕</option>
+        <option value="sub">subtract &nbsp;⊖</option>
+        <option value="mul">multiply &nbsp;⊗</option>
+        <option value="div">divide</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="fb">Second value</label>
+      <input type="text" id="fb" value="1/6" spellcheck="false" autocomplete="off">
+    </div>
+    <button id="calc-go" type="button">Run trace</button>
+  </div>
+  <p class="err" id="calc-err" role="status"></p>
+
+  <div class="panel" id="trace"></div>
+  <div class="tally" id="tally"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Why reduction is not optional</h2><span class="ref">§11.3 growth</span></div>
+  <p class="sec-lede">Formulas (7a)–(7d) stay exact without ever reducing, but the registers grow. Both curves below compute the same harmonic sum 1 + 1/2 + … + 1/n; one reduces after every operation, the other does not.</p>
+
+  <div class="slider-row">
+    <label for="nslider" class="ref" style="border:0;padding:0">terms n = <span id="nval">64</span></label>
+    <input type="range" id="nslider" min="8" max="256" step="8" value="64">
+  </div>
+  <div class="panel"><div class="chart-wrap"><div id="chart">Computing…</div></div></div>
+  <div class="legend">
+    <span><span class="swatch" style="border-color:var(--base3)"></span>Formulas (7a)–(7d), no reduction</span>
+    <span><span class="swatch" style="border-color:var(--base2)"></span>Algorithm 3, reduced after every step</span>
+    <span id="ratio"></span>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Checks running in this page</h2><span class="ref">§11.2 validation</span></div>
+  <p class="sec-lede">The same three families of checks reported in the paper, executed here against an independent rational implementation written directly on BigInt numerators and denominators.</p>
+  <div class="panel"><ul class="checks" id="checks"></ul></div>
+  <p class="total" id="checks-total">Starting…</p>
+</section>
+
+<footer>
+  <p>Reference implementation, test suite and the script reproducing every figure in the paper: <a href="https://github.com/rkalendar/RegisterAlgebra">github.com/rkalendar/RegisterAlgebra</a></p>
+  <p>Archived release: <a href="https://doi.org/10.5281/zenodo.21630724">doi.org/10.5281/zenodo.21630724</a> · R. Kalendar, University of Helsinki</p>
+  <p>This page is a demonstration of the formalism, not a fast arithmetic. For production exact arithmetic use GMP or your language's rational type.</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+/* ------------------------------------------------------------------
+   Register Arithmetic Unit — BigInt port of rau.py (Algorithms 1–3).
+   JavaScript Number is IEEE 754 double, so every quantity below is a
+   BigInt: the page contains no floating-point arithmetic.
+------------------------------------------------------------------ */
+const TWO = 2n, THREE = 3n, ZERO = 0n, ONE = 1n;
+
+const value        = R => TWO * R[0] + THREE * R[1];                  // (1)
+const canonicalize = N => (N % TWO === ZERO) ? [N / TWO, ZERO]        // (3a)
+                                             : [(N - THREE) / TWO, ONE]; // (3b)
+const regAdd = (X, Y) => [X[0] + Y[0], X[1] + Y[1]];                  // (4)
+const regSub = (X, Y) => [X[0] - Y[0], X[1] - Y[1]];
+const regMul = (X, Y) => [TWO * X[0] * Y[0],                          // (5)
+                          TWO * (X[0] * Y[1] + X[1] * Y[0]) + THREE * X[1] * Y[1]];
+
+function gcd(x, y){
+  x = x < ZERO ? -x : x;
+  y = y < ZERO ? -y : y;
+  while (y !== ZERO){ const t = x % y; x = y; y = t; }
+  return x;
+}
+
+function reduceFraction(P, Q){
+  const num = value(P), den = value(Q);
+  let g = gcd(num, den);
+  if (g === ZERO) g = ONE;
+  if (den < ZERO) g = -g;
+  return [canonicalize(num / g), canonicalize(den / g)];
+}
+
+const fromRatio = (p, q) => [canonicalize(p), canonicalize(q)];
+const toRatio   = X => { const [P, Q] = reduceFraction(X[0], X[1]); return [value(P), value(Q)]; };
+
+/* lazy variants — formulas (7a)–(7d) with no reduction */
+const fracAddLazy = (X, Y) => [regAdd(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1])];
+
+/* ---------------- instrumented layer for the visible trace ---------------- */
+function tally(){ return {MUL:0, ADD:0, DIV:0, MOD:0, regMul:0, regAdd:0}; }
+function cRegMul(X, Y, t){ t.MUL += 7; t.ADD += 2; t.regMul++; return regMul(X, Y); }
+function cRegAdd(X, Y, t){ t.ADD += 2; t.regAdd++; return regAdd(X, Y); }
+function cRegSub(X, Y, t){ t.ADD += 2; t.regAdd++; return regSub(X, Y); }
+function cValue(R, t){ t.MUL += 2; t.ADD += 1; return value(R); }
+function cCanon(N, t){ t.MOD += 1; t.DIV += 1; return canonicalize(N); }
+function cGcd(x, y, t){
+  x = x < ZERO ? -x : x; y = y < ZERO ? -y : y;
+  while (y !== ZERO){ t.MOD += 1; const r = x % y; x = y; y = r; }
+  return x;
+}
+
+/* ---------------- parsing and formatting ---------------- */
+function parseValue(s){
+  const txt = String(s).trim().replace(/\s+/g, "");
+  if (!txt) throw new Error("Enter an integer, or a fraction like 3/4.");
+  if (txt.length > 130) throw new Error("Keep it under 130 characters so the trace stays readable.");
+  const m = txt.match(/^(-?\d+)(?:\/(-?\d+))?$/);
+  if (!m) throw new Error("Enter an integer, or a fraction like 3/4.");
+  const p = BigInt(m[1]);
+  const q = m[2] === undefined ? ONE : BigInt(m[2]);
+  if (q === ZERO) throw new Error("A denominator of zero has no image of division.");
+  return fromRatio(p, q);
+}
+
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function clip(n, keep = 22){
+  const s = n.toString();
+  if (s.length <= keep * 2) return esc(s);
+  return esc(s.slice(0, keep)) + "…" + esc(s.slice(-6)) + "<span class='b'> (" + s.length + " digits)</span>";
+}
+function regHTML(R, showPhi = true){
+  const h = "<span class='reg'><span class='b'>&#10216;</span><span class='a-val'>" + clip(R[0]) +
+            "</span><span class='b'>, </span><span class='b-val'>" + clip(R[1]) + "</span><span class='b'>&#10217;</span>" +
+            (showPhi ? "<span class='phi'>&#966; = " + clip(value(R)) + "</span>" : "") + "</span>";
+  return h;
+}
+function fracHTML(X){
+  return "<span class='frac'><span>" + regHTML(X[0], false) + "</span><span>" + regHTML(X[1], false) + "</span></span>";
+}
+function ratioHTML(X){
+  const [p, q] = toRatio(X);
+  return q === ONE ? clip(p) : clip(p) + " / " + clip(q);
+}
+
+/* ---------------- hero tape ---------------- */
+function buildTape(){
+  const t = tally();
+  const A = fromRatio(1n, 3n), B = fromRatio(1n, 6n), C = fromRatio(2n, 1n);
+  const num1 = cRegAdd(cRegMul(A[0], B[1], t), cRegMul(B[0], A[1], t), t);
+  const den1 = cRegMul(A[1], B[1], t);
+  const sum  = reduceFraction(num1, den1);
+  const num2 = cRegMul(sum[0], C[0], t);
+  const den2 = cRegMul(sum[1], C[1], t);
+  const prod = reduceFraction(num2, den2);
+
+  const st = [
+    ["encode 1/3", fracHTML(A), false],
+    ["encode 1/6", fracHTML(B), false],
+    ["⊕ before reducing", fracHTML([num1, den1]), false],
+    ["evaluate, cancel by gcd", fracHTML(sum), true],
+    ["⊗ 2", fracHTML([num2, den2]), false],
+    ["result", "<span class='reg'><b>" + ratioHTML(prod) + "</b></span>", false]
+  ];
+  const tape = document.getElementById("tape");
+  tape.innerHTML = st.map(([cap, body, mark], i) =>
+    (i ? "<span class='arrow' aria-hidden='true'>&#8594;</span>" : "") +
+    "<div class='station" + (mark ? " is-mark" : "") + "' style='animation-delay:" + (i * 90) + "ms'>" +
+      "<div class='cap'>" + esc(cap) + "</div>" + body + "</div>").join("");
+}
+
+/* ---------------- encoder panel ---------------- */
+function runEncoder(){
+  const err = document.getElementById("enc-err");
+  const out = document.getElementById("enc-out");
+  err.textContent = "";
+  let N;
+  try{
+    const txt = document.getElementById("enc-in").value.trim().replace(/\s+/g, "");
+    if (!/^-?\d+$/.test(txt)) throw new Error("Enter a whole number, with no fraction bar.");
+    if (txt.length > 220) throw new Error("Keep it under 220 digits.");
+    N = BigInt(txt);
+  }catch(e){ err.textContent = e.message; out.innerHTML = ""; return; }
+
+  const R = canonicalize(N);
+  const parity = (N % TWO === ZERO) ? "even → (N/2, 0)" : "odd → ((N−3)/2, 1)";
+  out.innerHTML =
+    "<div>" + regHTML(R, false) + "</div>" +
+    "<div class='enc-eq'><span class='c2'>2</span>·<span class='c2'>" + clip(R[0]) + "</span> + " +
+      "<span class='c3'>3</span>·<span class='c3'>" + clip(R[1]) + "</span> = " + clip(value(R)) + "</div>" +
+    "<div class='chip'>" + esc(parity) + "</div>" +
+    "<div class='chip'>1 DIV + 1 MOD</div>";
+}
+
+/* ---------------- trace panel ---------------- */
+function runTrace(){
+  const err = document.getElementById("calc-err");
+  const box = document.getElementById("trace");
+  const tallyBox = document.getElementById("tally");
+  err.textContent = "";
+  let X, Y;
+  try{
+    X = parseValue(document.getElementById("fa").value);
+    Y = parseValue(document.getElementById("fb").value);
+  }catch(e){ err.textContent = e.message; box.innerHTML = ""; tallyBox.innerHTML = ""; return; }
+
+  const op = document.getElementById("op").value;
+  if (op === "div" && value(Y[0]) === ZERO){
+    err.textContent = "Division needs a non-zero second value.";
+    box.innerHTML = ""; tallyBox.innerHTML = ""; return;
+  }
+
+  const t = tally();
+  const steps = [];
+  steps.push({title:"Operands as register fractions", rows:[
+    ["first",  fracHTML(X)],
+    ["second", fracHTML(Y)]
+  ], note:"Each value is stored as numerator pair over denominator pair. The quotient is not formed."});
+
+  let num, den;
+  if (op === "add" || op === "sub"){
+    const t1 = cRegMul(X[0], Y[1], t), t2 = cRegMul(Y[0], X[1], t);
+    steps.push({title:"Cross-multiply", rows:[
+      ["p₁ ⊗ q₂", regHTML(t1)],
+      ["p₂ ⊗ q₁", regHTML(t2)]
+    ]});
+    num = (op === "add") ? cRegAdd(t1, t2, t) : cRegSub(t1, t2, t);
+    den = cRegMul(X[1], Y[1], t);
+    steps.push({title:(op === "add" ? "Formula (7a)" : "Formula (7b)"), rows:[
+      ["numerator",   regHTML(num)],
+      ["denominator", regHTML(den)]
+    ], note:"Componentwise addition costs two integer additions; each register product costs 7 MUL + 2 ADD."});
+  } else if (op === "mul"){
+    num = cRegMul(X[0], Y[0], t);
+    den = cRegMul(X[1], Y[1], t);
+    steps.push({title:"Formula (7c)", rows:[
+      ["numerator",   regHTML(num)],
+      ["denominator", regHTML(den)]
+    ]});
+  } else {
+    num = cRegMul(X[0], Y[1], t);
+    den = cRegMul(X[1], Y[0], t);
+    steps.push({title:"Formula (7d)", rows:[
+      ["numerator",   regHTML(num)],
+      ["denominator", regHTML(den)]
+    ], note:"Division is carried out by exchanging the registers of the second operand — no quotient is computed."});
+  }
+
+  const nv = cValue(num, t), dv = cValue(den, t);
+  let g = cGcd(nv, dv, t); if (g === ZERO) g = ONE; if (dv < ZERO) g = -g;
+  t.DIV += 2;
+  const P = cCanon(nv / g, t), Q = cCanon(dv / g, t);
+  steps.push({title:"Evaluate and cancel", mark:true, rows:[
+    ["φ(numerator)",   clip(nv)],
+    ["φ(denominator)", clip(dv)],
+    ["gcd",            clip(g < ZERO ? -g : g)]
+  ], note:"The only step in the formalism where an integer value is evaluated and a division performed — solely to cancel, never to approximate."});
+
+  steps.push({title:"Reduced result", rows:[
+    ["numerator",   regHTML(P)],
+    ["denominator", regHTML(Q)]
+  ]});
+
+  box.innerHTML = steps.map(s =>
+    "<div class='step" + (s.mark ? " is-mark" : "") + "'>" +
+      "<div class='step-title'>" + esc(s.title) + "</div>" +
+      "<div class='step-rows'>" + s.rows.map(([k, v]) =>
+        "<div class='row'><span class='k'>" + esc(k) + "</span><span>" + v + "</span></div>").join("") + "</div>" +
+      (s.note ? "<p class='step-note'>" + esc(s.note) + "</p>" : "") +
+    "</div>").join("") +
+    "<div class='result'><span class='lbl'>Exact value</span><span class='val'>" +
+      ratioHTML([P, Q]) + "</span></div>";
+
+  tallyBox.innerHTML =
+    "<span class='chip mul'>MUL <b>" + t.MUL + "</b></span>" +
+    "<span class='chip add'>ADD <b>" + t.ADD + "</b></span>" +
+    "<span class='chip div'>DIV <b>" + t.DIV + "</b></span>" +
+    "<span class='chip div'>MOD <b>" + t.MOD + "</b></span>" +
+    "<span class='chip'>register products <b>" + t.regMul + "</b> × (7 MUL + 2 ADD)</span>" +
+    "<span class='chip'>floating-point operations <b>0</b></span>";
+}
+
+/* ---------------- growth chart ---------------- */
+const NMAX = 256;
+let series = null;
+
+function bitsOf(v){ const a = v < ZERO ? -v : v; return a === ZERO ? 0 : a.toString(2).length; }
+
+function buildSeries(){
+  const lazy = [], red = [];
+  let L = fromRatio(ONE, ONE), A = fromRatio(ONE, ONE);
+  for (let k = 2; k <= NMAX; k++){
+    const term = fromRatio(ONE, BigInt(k));
+    L = fracAddLazy(L, term);
+    A = reduceFraction(regAdd(regMul(A[0], term[1]), regMul(term[0], A[1])), regMul(A[1], term[1]));
+    lazy.push(bitsOf(value(L[1])));
+    red.push(bitsOf(value(A[1])));
+  }
+  return {lazy, red};
+}
+
+function drawChart(n){
+  if (!series) return;
+  const idx = n - 2;
+  const lazy = series.lazy.slice(0, idx + 1), red = series.red.slice(0, idx + 1);
+  const W = 720, H = 260, L = 46, R = 12, T = 12, B = 30;
+  const maxY = Math.max(lazy[lazy.length - 1], 10);
+  const x = i => L + (W - L - R) * (i / Math.max(lazy.length - 1, 1));
+  const y = v => T + (H - T - B) * (1 - v / maxY);
+  const path = arr => arr.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
+
+  let grid = "";
+  for (let s = 0; s <= 4; s++){
+    const gv = maxY * s / 4, gy = y(gv);
+    grid += "<line class='grid' x1='" + L + "' y1='" + gy.toFixed(1) + "' x2='" + (W - R) + "' y2='" + gy.toFixed(1) + "'/>" +
+            "<text class='tick' x='" + (L - 8) + "' y='" + (gy + 3).toFixed(1) + "' text-anchor='end'>" + Math.round(gv) + "</text>";
+  }
+  document.getElementById("chart").innerHTML =
+    "<svg viewBox='0 0 " + W + " " + H + "' role='img' aria-label='Denominator size in bits against number of terms'>" +
+      grid +
+      "<line class='ax' x1='" + L + "' y1='" + T + "' x2='" + L + "' y2='" + (H - B) + "'/>" +
+      "<line class='ax' x1='" + L + "' y1='" + (H - B) + "' x2='" + (W - R) + "' y2='" + (H - B) + "'/>" +
+      "<text class='tick' x='" + L + "' y='" + (H - B + 16) + "'>n = 2</text>" +
+      "<text class='tick' x='" + (W - R) + "' y='" + (H - B + 16) + "' text-anchor='end'>n = " + n + "</text>" +
+      "<text class='tick' x='" + (L - 8) + "' y='" + (T - 2) + "' text-anchor='end'>bits</text>" +
+      "<path class='plot-lazy' d='" + path(lazy) + "'/>" +
+      "<path class='plot-red' d='" + path(red) + "'/>" +
+    "</svg>";
+
+  const a = lazy[lazy.length - 1], b = red[red.length - 1];
+  document.getElementById("ratio").textContent =
+    a + " bits against " + b + " bits — a factor of " + (a / b).toFixed(1);
+}
+
+/* ---------------- validation suite ---------------- */
+const CHECKS = [
+  {id:"hom",   what:"Homomorphism identities for ⊕, ⊖, ⊗ over all pairs with |a|, |b| ≤ 8", n:0},
+  {id:"canon", what:"Canonical form: b ∈ {0, 1}, exact value recovery, idempotence, on [−5000, 5000]", n:0},
+  {id:"diff",  what:"Differential test of (7a)–(7d) against an independent BigInt rational", n:0}
+];
+function renderChecks(){
+  document.getElementById("checks").innerHTML = CHECKS.map(c =>
+    "<li><span class='what'>" + esc(c.what) + "</span>" +
+    "<span class='cnt'>" + (c.n ? c.n.toLocaleString("en-US") + " checks" : "—") + "</span>" +
+    "<span class='st " + (c.state || "pending") + "'>" + (c.state || "running") + "</span></li>").join("");
+}
+
+/* independent reference: plain BigInt fractions, written without the register layer */
+function refNorm(p, q){
+  if (q < ZERO){ p = -p; q = -q; }
+  const g = gcd(p, q) || ONE;
+  return [p / g, q / g];
+}
+const refAdd = (A, B) => refNorm(A[0] * B[1] + B[0] * A[1], A[1] * B[1]);
+const refSub = (A, B) => refNorm(A[0] * B[1] - B[0] * A[1], A[1] * B[1]);
+const refMul = (A, B) => refNorm(A[0] * B[0], A[1] * B[1]);
+const refDiv = (A, B) => refNorm(A[0] * B[1], A[1] * B[0]);
+
+function lcg(seed){ let s = BigInt(seed); return () => { s = (s * 6364136223846793005n + 1442695040888963407n) & ((1n << 64n) - 1n); return s; }; }
+
+function runChecks(){
+  let total = 0, failed = false;
+
+  /* 1. exhaustive homomorphism */
+  const regs = [];
+  for (let a = -8; a <= 8; a++) for (let b = -8; b <= 8; b++) regs.push([BigInt(a), BigInt(b)]);
+  let n1 = 0;
+  for (const X of regs){
+    const vx = value(X);
+    for (const Y of regs){
+      const vy = value(Y);
+      if (value(regAdd(X, Y)) !== vx + vy || value(regSub(X, Y)) !== vx - vy || value(regMul(X, Y)) !== vx * vy) failed = true;
+      n1 += 3;
+    }
+  }
+  CHECKS[0].n = n1; CHECKS[0].state = failed ? "fail" : "pass"; total += n1; renderChecks();
+
+  /* 2. canonical form */
+  let n2 = 0;
+  for (let i = -5000; i <= 5000; i++){
+    const N = BigInt(i), K = canonicalize(N);
+    if (!(K[1] === ZERO || K[1] === ONE) || value(K) !== N || canonicalize(value(K))[0] !== K[0]) failed = true;
+    n2 += 3;
+  }
+  CHECKS[1].n = n2; CHECKS[1].state = failed ? "fail" : "pass"; total += n2; renderChecks();
+
+  /* 3. differential test */
+  const rnd = lcg(20260713);
+  let n3 = 0;
+  for (let i = 0; i < 1500; i++){
+    const p = rnd() - (1n << 63n), q = (rnd() % (1n << 40n)) + ONE,
+          r = rnd() - (1n << 63n), s = (rnd() % (1n << 40n)) + ONE;
+    const X = fromRatio(p, q), Y = fromRatio(r, s);
+    const A = refNorm(p, q), B = refNorm(r, s);
+    const cmp = (got, want) => { if (got[0] !== want[0] || got[1] !== want[1]) failed = true; };
+    cmp(toRatio([regAdd(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1])]), refAdd(A, B));
+    cmp(toRatio([regSub(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1])]), refSub(A, B));
+    cmp(toRatio([regMul(X[0], Y[0]), regMul(X[1], Y[1])]), refMul(A, B));
+    if (r !== ZERO) cmp(toRatio([regMul(X[0], Y[1]), regMul(X[1], Y[0])]), refDiv(A, B));
+    n3 += 4;
+  }
+  CHECKS[2].n = n3; CHECKS[2].state = failed ? "fail" : "pass"; total += n3; renderChecks();
+
+  document.getElementById("checks-total").textContent = failed
+    ? "A check failed in this browser — please report it as an issue on GitHub."
+    : total.toLocaleString("en-US") + " checks passed in this browser, with no discrepancies. The paper reports 4,245,566 checks from the full Python suite.";
+}
+
+/* ---------------- wiring ---------------- */
+buildTape();
+runEncoder();
+runTrace();
+renderChecks();
+
+document.getElementById("enc-go").addEventListener("click", runEncoder);
+document.getElementById("enc-in").addEventListener("keydown", e => { if (e.key === "Enter") runEncoder(); });
+document.getElementById("calc-go").addEventListener("click", runTrace);
+["fa","fb"].forEach(id => document.getElementById(id)
+  .addEventListener("keydown", e => { if (e.key === "Enter") runTrace(); }));
+document.getElementById("op").addEventListener("change", runTrace);
+
+const slider = document.getElementById("nslider");
+slider.addEventListener("input", () => {
+  document.getElementById("nval").textContent = slider.value;
+  drawChart(parseInt(slider.value, 10));
+});
+
+setTimeout(() => { series = buildSeries(); drawChart(parseInt(slider.value, 10)); }, 30);
+setTimeout(runChecks, 120);
+</script>
+</body>
+</html>
