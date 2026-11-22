@@ -157,7 +157,7 @@ Software (all versions, resolves to the latest):
 
 > Kalendar, R. (2026). *RegisterAlgebra: reference implementation of exact
 > register arithmetic* [Computer software]. Zenodo.
-> https://doi.org/10.5281/zenodo.21630724
+> https://doi.org/10.5281/zenodo.24432373
 
 The DOI above is the concept DOI; version 1.0.0 specifically is archived at
 https://doi.org/10.5281/zenodo.21630725. Releases are also preserved in
