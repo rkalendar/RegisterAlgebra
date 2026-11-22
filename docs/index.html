@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Register Algebra — interactive demonstration</title>
-<meta name="description" content="Interactive demonstration of Register Algebra: every integer is a pair of registers (a, b) evaluated as 2a + 3b, every rational is an unevaluated pair of pairs. Computed with BigInt only — no floating point.">
+<meta name="description" content="Interactive demonstration of Register Algebra: every integer is a pair of arbitrary-precision registers (a, b) evaluated as 2a + 3b, every rational is an unevaluated pair of pairs whose denominator has non-zero value. All arithmetic is done on BigInt.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
     --rule:#C4D2DB;
     --base2:#2E41BE;          /* the a register — coefficient 2 */
     --base3:#8F5209;          /* the b register — coefficient 3 */
-    --mark:#A81B34;           /* the one place a division happens */
+    --mark:#A81B34;           /* the steps where registers are evaluated and divided */
     --serif:"Spectral",Georgia,"Times New Roman",serif;
     --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
     --cond:"IBM Plex Sans Condensed","Helvetica Neue",Arial,sans-serif;
@@ -181,6 +181,17 @@
   .st.fail{color:var(--mark)}
   .total{font-family:var(--cond);font-size:.86rem;color:var(--ink-soft);margin-top:.9rem}
 
+  /* ---------- representatives ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:.5rem;padding:.2rem 1.1rem 1rem}
+  .chip.warn{border-color:var(--mark);color:var(--mark)}
+  .bars{padding:1rem 1.1rem .4rem;display:grid;gap:.3rem}
+  .bar-row{display:grid;grid-template-columns:3.6rem 1fr 8.5rem;gap:.7rem;align-items:center;
+    font-family:var(--mono);font-size:.8rem;color:var(--ink-soft)}
+  .bar-track{height:.55rem;background:#EDF2F5;border-radius:1px}
+  .bar-fill{height:100%;background:var(--base3);border-radius:1px;min-width:2px}
+  .bar-row .bits{text-align:right;color:var(--ink)}
+  .bar-cap{font-family:var(--cond);font-size:.78rem;color:var(--ink-soft);padding:0 1.1rem .9rem;margin:0}
+
   footer{border-top:1px solid var(--rule);margin-top:3rem;padding-top:1.6rem;font-size:.92rem;color:var(--ink-soft)}
   footer p{margin:.3rem 0}
   code{font-family:var(--mono);font-size:.9em}
@@ -192,15 +203,15 @@
 <header class="top">
   <p class="eyebrow">Register Algebra · interactive demonstration</p>
   <h1>Every number here is <span class="n2">two</span> integers, read as <span class="n2">2a</span> + <span class="n3">3b</span>.</h1>
-  <p class="lede">An integer is a register pair. A rational is a pair of pairs, kept as the image of a division that is never carried out. This page runs the paper's algorithms in your browser on <strong>BigInt</strong> only — no floating-point number is created at any point.</p>
+  <p class="lede">An integer is a pair of arbitrary-precision registers. A rational is a pair of pairs whose denominator has non-zero value; the quotient of numerator by denominator is never formed. This page runs the paper's algorithms in your browser. All arithmetic is done on <strong>BigInt</strong>; floating point is used only to draw the chart.</p>
 
   <div class="tape" id="tape" aria-label="Worked trace of (1/3 + 1/6) × 2"></div>
-  <p class="tape-note">Division appears exactly once in the whole computation — at the marked station, where the greatest common divisor cancels the fraction. Everything before it is addition and multiplication of integers.</p>
+  <p class="tape-note">At the two marked stations the registers are evaluated to integers and divided exactly by their greatest common divisor; halving then restores the canonical form, as it does when the operands are encoded. These are the integer divisions of the system. What never happens is the division of a numerator by its denominator.</p>
 </header>
 
 <section>
-  <div class="sec-head"><h2>Encode an integer</h2><span class="ref">§3 canonical form</span></div>
-  <p class="sec-lede">Canonicalisation sends every integer to the unique pair whose second register is 0 or 1: even numbers to (N/2, 0), odd numbers to ((N−3)/2, 1). Try a negative number, or something with two hundred digits.</p>
+  <div class="sec-head"><h2>Encode an integer</h2><span class="ref">§4 canonical form</span></div>
+  <p class="sec-lede">Canonicalisation sends every integer to the unique pair whose second register is 0 or 1: even numbers to (N/2, 0), odd numbers to ((N−3)/2, 1). Equivalently, if N = 2q + r with r in {0, 1}, the pair is (q − r, r), so the canonical form holds the quotient and the parity of N in other coordinates and nothing more. Try a negative number, or something with two hundred digits.</p>
 
   <div class="controls">
     <div class="field">
@@ -215,7 +226,7 @@
 
 <section>
   <div class="sec-head"><h2>Compute with fractions</h2><span class="ref">§8 algorithms 1–3</span></div>
-  <p class="sec-lede">Every intermediate value below is a register pair. The operation counter tallies integer operations exactly as Table 5 of the paper counts them: seven multiplications and two additions for each register product.</p>
+  <p class="sec-lede">Every intermediate value below is a register pair. The counter tallies integer operations as Table 5 of the paper counts them: seven multiplications and two additions for each register product. These are counts in the unit-cost model, not running times. The registers are arbitrary-precision integers, so an addition costs time linear in their length and a product costs the time of a big-integer multiplication.</p>
 
   <div class="controls">
     <div class="field">
@@ -244,6 +255,32 @@
 </section>
 
 <section>
+  <div class="sec-head"><h2>The representative matters</h2><span class="ref">§5.3 normalisation</span></div>
+  <p class="sec-lede">The map (a, b) &#8614; 2a + 3b is not injective: (a + 3k, b − 2k) represents the same integer for every k. In particular a pair can represent zero without being (0, 0), which is why a denominator must have non-zero <em>value</em>. Enter any pair to see its value and its canonical representative, obtained in register space as (a + 3&#8970;b/2&#8971;, b mod 2) without evaluating the pair.</p>
+
+  <div class="controls">
+    <div class="field">
+      <label for="pa">Register a</label>
+      <input type="text" id="pa" value="3" spellcheck="false" autocomplete="off" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label for="pb">Register b</label>
+      <input type="text" id="pb" value="-2" spellcheck="false" autocomplete="off" inputmode="numeric">
+    </div>
+    <button id="pair-go" type="button">Inspect pair</button>
+  </div>
+  <p class="err" id="pair-err" role="status"></p>
+  <div class="panel" id="pair-out"></div>
+
+  <p class="sec-lede" style="margin-top:2rem">Formula (5) returns a raw pair that is in general not canonical, even for canonical inputs, and its first register is 2ac whatever the values are. Squaring the canonical pair for 1 again and again shows the consequence: every pair in the chain still represents 1, but its registers double in length at every step. Normalising after each product keeps the pair at (−1, 1).</p>
+  <div class="slider-row">
+    <label for="kslider" class="ref" style="border:0;padding:0">squarings k = <span id="kval">5</span></label>
+    <input type="range" id="kslider" min="0" max="16" step="1" value="5">
+  </div>
+  <div class="panel" id="sq-out"></div>
+</section>
+
+<section>
   <div class="sec-head"><h2>Why reduction is not optional</h2><span class="ref">§11.3 growth</span></div>
   <p class="sec-lede">Formulas (7a)–(7d) stay exact without ever reducing, but the registers grow. Both curves below compute the same harmonic sum 1 + 1/2 + … + 1/n; one reduces after every operation, the other does not.</p>
 
@@ -261,15 +298,15 @@
 
 <section>
   <div class="sec-head"><h2>Checks running in this page</h2><span class="ref">§11.2 validation</span></div>
-  <p class="sec-lede">The same three families of checks reported in the paper, executed here against an independent rational implementation written directly on BigInt numerators and denominators.</p>
+  <p class="sec-lede">A reduced version of the checks reported in the paper, executed here against an independent rational implementation written directly on BigInt numerators and denominators. They include the cases that define the domain: denominators that represent zero without being (0, 0), zero divisors, and operands re-encoded with other representatives.</p>
   <div class="panel"><ul class="checks" id="checks"></ul></div>
   <p class="total" id="checks-total">Starting…</p>
 </section>
 
 <footer>
   <p>Reference implementation, test suite and the script reproducing every figure in the paper: <a href="https://github.com/rkalendar/RegisterAlgebra">github.com/rkalendar/RegisterAlgebra</a></p>
-  <p>Archived release: <a href="https://doi.org/10.5281/zenodo.21630724">doi.org/10.5281/zenodo.21630724</a> · R. Kalendar, University of Helsinki</p>
-  <p>This page is a demonstration of the formalism, not a fast arithmetic. For production exact arithmetic use GMP or your language's rational type.</p>
+  <p>Archived release: <a href="https://doi.org/10.5281/zenodo.21630724">doi.org/10.5281/zenodo.21630724</a> · this page follows version 1.1 of the code · R. Kalendar, University of Helsinki</p>
+  <p>Register Algebra is an alternative encoding of ordinary exact arithmetic, not a new number system and not a fast arithmetic: in canonical form the pair carries the same information as &#8970;N/2&#8971; and N mod 2, and no workload measured in the paper shows an advantage. This page demonstrates the formalism. For production exact arithmetic use GMP or your language's rational type.</p>
 </footer>
 
 </div>
@@ -277,19 +314,30 @@
 <script>
 "use strict";
 /* ------------------------------------------------------------------
-   Register Arithmetic Unit — BigInt port of rau.py (Algorithms 1–3).
-   JavaScript Number is IEEE 754 double, so every quantity below is a
-   BigInt: the page contains no floating-point arithmetic.
+   Register Arithmetic Unit — BigInt port of rau.py, version 1.1
+   (Algorithms 1–3). JavaScript Number is an IEEE 754 double, so every
+   quantity of the arithmetic below is a BigInt. Number is used only
+   for the geometry of the chart and for counting checks.
+
+   A register fraction (P, Q) is admissible only if value(Q) != 0.
+   Q != (0, 0) is not enough: every pair (3k, -2k) has value zero.
 ------------------------------------------------------------------ */
 const TWO = 2n, THREE = 3n, ZERO = 0n, ONE = 1n;
 
+/* BigInt "/" and "%" truncate toward zero; this is floor division by 2
+   with a remainder in {0, 1}, valid for negative numbers as well. */
+const divmod2 = N => { const r = ((N % TWO) + TWO) % TWO; return [(N - r) / TWO, r]; };
+
 const value        = R => TWO * R[0] + THREE * R[1];                  // (1)
-const canonicalize = N => (N % TWO === ZERO) ? [N / TWO, ZERO]        // (3a)
-                                             : [(N - THREE) / TWO, ONE]; // (3b)
+const canonicalize = N => { const [q, r] = divmod2(N); return [q - r, r]; };   // (3c): N = 2q + r
 const regAdd = (X, Y) => [X[0] + Y[0], X[1] + Y[1]];                  // (4)
 const regSub = (X, Y) => [X[0] - Y[0], X[1] - Y[1]];
-const regMul = (X, Y) => [TWO * X[0] * Y[0],                          // (5)
+/* raw product (5): the result is in general NOT canonical */
+const regMul = (X, Y) => [TWO * X[0] * Y[0],
                           TWO * (X[0] * Y[1] + X[1] * Y[0]) + THREE * X[1] * Y[1]];
+/* normalisation in register space (3d): the pair is never evaluated */
+const normalize  = R => { const [k, r] = divmod2(R[1]); return [R[0] + THREE * k, r]; };
+const regMulNorm = (X, Y) => normalize(regMul(X, Y));
 
 function gcd(x, y){
   x = x < ZERO ? -x : x;
@@ -298,19 +346,50 @@ function gcd(x, y){
   return x;
 }
 
+const ZERO_DEN = "register fraction with a zero-valued denominator";
+const ZERO_DIV = "division by a zero-valued register fraction";
+function requireAdmissible(X){ if (value(X[1]) === ZERO) throw new RangeError(ZERO_DEN); }
+
+/* normal form (7e): canonical pairs, coprime values, positive denominator */
 function reduceFraction(P, Q){
   const num = value(P), den = value(Q);
-  let g = gcd(num, den);
-  if (g === ZERO) g = ONE;
+  if (den === ZERO) throw new RangeError(ZERO_DEN);
+  let g = gcd(num, den);                    // g >= 1 because den != 0
   if (den < ZERO) g = -g;
   return [canonicalize(num / g), canonicalize(den / g)];
 }
 
-const fromRatio = (p, q) => [canonicalize(p), canonicalize(q)];
-const toRatio   = X => { const [P, Q] = reduceFraction(X[0], X[1]); return [value(P), value(Q)]; };
+function fromRatio(p, q){
+  if (q === ZERO) throw new RangeError("zero denominator");
+  return [canonicalize(p), canonicalize(q)];
+}
+const asRatio = X => [value(X[0]), value(X[1])];                       // as stored, no reduction
+const toRatio = X => asRatio(reduceFraction(X[0], X[1]));
+
+/* Algorithm 3: any admissible operands in, normal form out */
+const fracAdd = (X, Y) => reduceFraction(regAdd(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1]));
+const fracSub = (X, Y) => reduceFraction(regSub(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1]));
+const fracMul = (X, Y) => reduceFraction(regMul(X[0], Y[0]), regMul(X[1], Y[1]));
+function fracDiv(X, Y){
+  requireAdmissible(Y);                     // Y's denominator moves into the numerator
+  if (value(Y[0]) === ZERO) throw new RangeError(ZERO_DIV);
+  return reduceFraction(regMul(X[0], Y[1]), regMul(X[1], Y[0]));
+}
+function fracEq(X, Y){                      // relation (6b), on admissible fractions only
+  requireAdmissible(X); requireAdmissible(Y);
+  return value(regMul(X[0], Y[1])) === value(regMul(X[1], Y[0]));
+}
 
 /* lazy variants — formulas (7a)–(7d) with no reduction */
-const fracAddLazy = (X, Y) => [regAdd(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1])];
+function fracAddLazy(X, Y){ requireAdmissible(X); requireAdmissible(Y);
+  return [regAdd(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1])]; }
+function fracSubLazy(X, Y){ requireAdmissible(X); requireAdmissible(Y);
+  return [regSub(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1])]; }
+function fracMulLazy(X, Y){ requireAdmissible(X); requireAdmissible(Y);
+  return [regMul(X[0], Y[0]), regMul(X[1], Y[1])]; }
+function fracDivLazy(X, Y){ requireAdmissible(X); requireAdmissible(Y);
+  if (value(Y[0]) === ZERO) throw new RangeError(ZERO_DIV);
+  return [regMul(X[0], Y[1]), regMul(X[1], Y[0])]; }
 
 /* ---------------- instrumented layer for the visible trace ---------------- */
 function tally(){ return {MUL:0, ADD:0, DIV:0, MOD:0, regMul:0, regAdd:0}; }
@@ -318,7 +397,7 @@ function cRegMul(X, Y, t){ t.MUL += 7; t.ADD += 2; t.regMul++; return regMul(X, 
 function cRegAdd(X, Y, t){ t.ADD += 2; t.regAdd++; return regAdd(X, Y); }
 function cRegSub(X, Y, t){ t.ADD += 2; t.regAdd++; return regSub(X, Y); }
 function cValue(R, t){ t.MUL += 2; t.ADD += 1; return value(R); }
-function cCanon(N, t){ t.MOD += 1; t.DIV += 1; return canonicalize(N); }
+function cCanon(N, t){ t.MOD += 1; t.DIV += 1; t.ADD += 1; return canonicalize(N); }   // 1 DIV + 1 MOD + 1 SUB
 function cGcd(x, y, t){
   x = x < ZERO ? -x : x; y = y < ZERO ? -y : y;
   while (y !== ZERO){ t.MOD += 1; const r = x % y; x = y; y = r; }
@@ -372,9 +451,10 @@ function buildTape(){
   const st = [
     ["encode 1/3", fracHTML(A), false],
     ["encode 1/6", fracHTML(B), false],
-    ["⊕ before reducing", fracHTML([num1, den1]), false],
+    ["⊕ raw, before reducing", fracHTML([num1, den1]), false],
     ["evaluate, cancel by gcd", fracHTML(sum), true],
-    ["⊗ 2", fracHTML([num2, den2]), false],
+    ["⊗ 2, raw", fracHTML([num2, den2]), false],
+    ["evaluate, cancel by gcd", fracHTML(prod), true],
     ["result", "<span class='reg'><b>" + ratioHTML(prod) + "</b></span>", false]
   ];
   const tape = document.getElementById("tape");
@@ -398,13 +478,15 @@ function runEncoder(){
   }catch(e){ err.textContent = e.message; out.innerHTML = ""; return; }
 
   const R = canonicalize(N);
-  const parity = (N % TWO === ZERO) ? "even → (N/2, 0)" : "odd → ((N−3)/2, 1)";
+  const [q, r] = divmod2(N);
+  const parity = (r === ZERO) ? "even → (N/2, 0)" : "odd → ((N−3)/2, 1)";
   out.innerHTML =
     "<div>" + regHTML(R, false) + "</div>" +
     "<div class='enc-eq'><span class='c2'>2</span>·<span class='c2'>" + clip(R[0]) + "</span> + " +
       "<span class='c3'>3</span>·<span class='c3'>" + clip(R[1]) + "</span> = " + clip(value(R)) + "</div>" +
     "<div class='chip'>" + esc(parity) + "</div>" +
-    "<div class='chip'>1 DIV + 1 MOD</div>";
+    "<div class='chip'>N = 2q + r: q = " + clip(q, 10) + ", r = " + r + " → (q − r, r)</div>" +
+    "<div class='chip'>1 DIV + 1 MOD + 1 SUB</div>";
 }
 
 /* ---------------- trace panel ---------------- */
@@ -430,7 +512,7 @@ function runTrace(){
   steps.push({title:"Operands as register fractions", rows:[
     ["first",  fracHTML(X)],
     ["second", fracHTML(Y)]
-  ], note:"Each value is stored as numerator pair over denominator pair. The quotient is not formed."});
+  ], note:"Each value is stored as numerator pair over denominator pair; the denominator has non-zero value. The quotient is not formed."});
 
   let num, den;
   if (op === "add" || op === "sub"){
@@ -444,32 +526,36 @@ function runTrace(){
     steps.push({title:(op === "add" ? "Formula (7a)" : "Formula (7b)"), rows:[
       ["numerator",   regHTML(num)],
       ["denominator", regHTML(den)]
-    ], note:"Componentwise addition costs two integer additions; each register product costs 7 MUL + 2 ADD."});
+    ], note:"Componentwise addition costs two integer additions; each register product costs 7 MUL + 2 ADD. The pairs shown are raw outputs and in general not canonical."});
   } else if (op === "mul"){
     num = cRegMul(X[0], Y[0], t);
     den = cRegMul(X[1], Y[1], t);
     steps.push({title:"Formula (7c)", rows:[
       ["numerator",   regHTML(num)],
       ["denominator", regHTML(den)]
-    ]});
+    ], note:"The pairs shown are raw outputs of formula (5) and in general not canonical."});
   } else {
     num = cRegMul(X[0], Y[1], t);
     den = cRegMul(X[1], Y[0], t);
     steps.push({title:"Formula (7d)", rows:[
       ["numerator",   regHTML(num)],
       ["denominator", regHTML(den)]
-    ], note:"Division is carried out by exchanging the registers of the second operand — no quotient is computed."});
+    ], note:"Division exchanges the numerator and the denominator of the second operand, which must therefore have non-zero value. No quotient is computed."});
   }
 
   const nv = cValue(num, t), dv = cValue(den, t);
-  let g = cGcd(nv, dv, t); if (g === ZERO) g = ONE; if (dv < ZERO) g = -g;
+  if (dv === ZERO){                         // cannot occur for admissible operands; kept as a guard
+    err.textContent = "The denominator has value zero: not an admissible register fraction.";
+    box.innerHTML = ""; tallyBox.innerHTML = ""; return;
+  }
+  let g = cGcd(nv, dv, t); if (dv < ZERO) g = -g;
   t.DIV += 2;
   const P = cCanon(nv / g, t), Q = cCanon(dv / g, t);
   steps.push({title:"Evaluate and cancel", mark:true, rows:[
     ["φ(numerator)",   clip(nv)],
     ["φ(denominator)", clip(dv)],
     ["gcd",            clip(g < ZERO ? -g : g)]
-  ], note:"The only step in the formalism where an integer value is evaluated and a division performed — solely to cancel, never to approximate."});
+  ], note:"Here the two pairs are evaluated to integers and divided exactly by their gcd, and halving then restores the canonical form. The evaluation serves cancellation only, never approximation; the numerator is not divided by the denominator."});
 
   steps.push({title:"Reduced result", rows:[
     ["numerator",   regHTML(P)],
@@ -492,7 +578,81 @@ function runTrace(){
     "<span class='chip div'>DIV <b>" + t.DIV + "</b></span>" +
     "<span class='chip div'>MOD <b>" + t.MOD + "</b></span>" +
     "<span class='chip'>register products <b>" + t.regMul + "</b> × (7 MUL + 2 ADD)</span>" +
-    "<span class='chip'>floating-point operations <b>0</b></span>";
+    "<span class='chip'>floating-point operations <b>0</b></span>" +
+    "<span class='chip'>counts in the unit-cost model, not running time</span>";
+}
+
+/* ---------------- representatives (Section 5.3) ---------------- */
+function parseInt_(id, label){
+  const txt = document.getElementById(id).value.trim().replace(/\s+/g, "");
+  if (!/^-?\d+$/.test(txt)) throw new Error(label + " must be a whole number.");
+  if (txt.length > 60) throw new Error("Keep " + label + " under 60 digits.");
+  return BigInt(txt);
+}
+function runPair(){
+  const err = document.getElementById("pair-err");
+  const out = document.getElementById("pair-out");
+  err.textContent = "";
+  let a, b;
+  try{ a = parseInt_("pa", "Register a"); b = parseInt_("pb", "Register b"); }
+  catch(e){ err.textContent = e.message; out.innerHTML = ""; return; }
+
+  const R = [a, b], v = value(R), N = normalize(R), k = divmod2(b)[0];
+  const isCanon = (b === ZERO || b === ONE);
+  const row = (key, html) => "<div class='row'><span class='k'>" + esc(key) + "</span><span>" + html + "</span></div>";
+  let chips = "<span class='chip'>" + (isCanon ? "already canonical" : "not canonical: b is not 0 or 1") + "</span>";
+  if (v === ZERO && !(a === ZERO && b === ZERO))
+    chips += "<span class='chip warn'>value 0, yet not &#10216;0, 0&#10217;: not admissible as a denominator</span>";
+  else if (v === ZERO)
+    chips += "<span class='chip warn'>value 0: not admissible as a denominator</span>";
+  else
+    chips += "<span class='chip'>non-zero value: admissible as a denominator</span>";
+
+  out.innerHTML =
+    "<div class='step'><div class='step-title'>The pair and its value</div><div class='step-rows'>" +
+      row("pair", regHTML(R, false)) +
+      row("φ = 2a + 3b", "<span class='reg'>" + clip(v) + "</span>") +
+    "</div></div>" +
+    "<div class='step'><div class='step-title'>Canonical representative, formula (3d)</div><div class='step-rows'>" +
+      row("k = ⌊b/2⌋", "<span class='reg'>" + clip(k) + "</span>") +
+      row("(a + 3k, b − 2k)", regHTML(N)) +
+    "</div><p class='step-note'>One halving, one scaling by 3 and one addition; the pair itself is not evaluated. The result equals the canonical form of the value.</p></div>" +
+    "<div class='step'><div class='step-title'>Other representatives of the same integer</div><div class='step-rows'>" +
+      row("k = 1",  regHTML([a + THREE, b - TWO])) +
+      row("k = −1", regHTML([a - THREE, b + TWO])) +
+    "</div></div>" +
+    "<div class='chips'>" + chips + "</div>";
+}
+
+const KMAX = 16;
+let squares = null;
+function buildSquares(){
+  const raw = [[-ONE, ONE]];                 // kappa(1)
+  for (let k = 1; k <= KMAX; k++) raw.push(regMul(raw[k - 1], raw[k - 1]));
+  return raw;
+}
+function drawSquares(k){
+  if (!squares) squares = buildSquares();
+  const R = squares[k];
+  const ok = value(R) === ONE && normalize(R)[0] === -ONE && normalize(R)[1] === ONE;
+  let bars = "";
+  for (let j = 0; j <= k; j++){
+    const bits = bitsOf(squares[j][0]);
+    bars += "<div class='bar-row'><span>k = " + j + "</span>" +
+            "<div class='bar-track'><div class='bar-fill' style='width:" + (100 * j / KMAX).toFixed(1) + "%'></div></div>" +
+            "<span class='bits'>" + bits.toLocaleString("en-US") + (bits === 1 ? " bit" : " bits") + "</span></div>";
+  }
+  const row = (key, html) => "<div class='row'><span class='k'>" + esc(key) + "</span><span>" + html + "</span></div>";
+  document.getElementById("sq-out").innerHTML =
+    "<div class='step'><div class='step-title'>After " + k + " squaring" + (k === 1 ? "" : "s") + " of &#10216;−1, 1&#10217;</div><div class='step-rows'>" +
+      row("raw ⊗, retained", regHTML(R, false)) +
+      row("value φ", "<span class='reg'>" + clip(value(R)) + (ok ? "" : " — check failed") + "</span>") +
+      row("register sizes", "<span class='reg'>" + bitsOf(R[0]).toLocaleString("en-US") + " and " +
+                             bitsOf(R[1]).toLocaleString("en-US") + " bits</span>") +
+      row("normalised each step", regHTML([-ONE, ONE], false)) +
+    "</div></div>" +
+    "<div class='bars' aria-label='Bit length of the first register after each squaring'>" + bars + "</div>" +
+    "<p class='bar-cap'>Bit length of the first register of the retained raw pair. The bars are drawn on a logarithmic scale: each step doubles the length.</p>";
 }
 
 /* ---------------- growth chart ---------------- */
@@ -537,7 +697,7 @@ function drawChart(n){
       "<line class='ax' x1='" + L + "' y1='" + (H - B) + "' x2='" + (W - R) + "' y2='" + (H - B) + "'/>" +
       "<text class='tick' x='" + L + "' y='" + (H - B + 16) + "'>n = 2</text>" +
       "<text class='tick' x='" + (W - R) + "' y='" + (H - B + 16) + "' text-anchor='end'>n = " + n + "</text>" +
-      "<text class='tick' x='" + (L - 8) + "' y='" + (T - 2) + "' text-anchor='end'>bits</text>" +
+      "<text class='tick' x='" + (L + 6) + "' y='" + (T + 3) + "'>bits</text>" +
       "<path class='plot-lazy' d='" + path(lazy) + "'/>" +
       "<path class='plot-red' d='" + path(red) + "'/>" +
     "</svg>";
@@ -549,9 +709,11 @@ function drawChart(n){
 
 /* ---------------- validation suite ---------------- */
 const CHECKS = [
-  {id:"hom",   what:"Homomorphism identities for ⊕, ⊖, ⊗ over all pairs with |a|, |b| ≤ 8", n:0},
-  {id:"canon", what:"Canonical form: b ∈ {0, 1}, exact value recovery, idempotence, on [−5000, 5000]", n:0},
-  {id:"diff",  what:"Differential test of (7a)–(7d) against an independent BigInt rational", n:0}
+  {id:"hom",   what:"Homomorphism identities for ⊕, ⊖, ⊗; register-space normalisation (3d); normalised product — all pairs with |a|, |b| ≤ 8", n:0},
+  {id:"canon", what:"Canonical form on [−5000, 5000]: b ∈ {0, 1}, exact value recovery, idempotence, (3a)–(3b) against (3c)", n:0},
+  {id:"tab3",  what:"Closed forms of Table 3 for canonical operands with |a|, |c| ≤ 20", n:0},
+  {id:"diff",  what:"Differential test against an independent BigInt rational: Algorithm 3, lazy (7a)–(7d), equality, re-encoded operands; zero numerators included", n:0},
+  {id:"dom",   what:"Domain: denominators (3k, −2k) with value zero and zero divisors are rejected; representatives of zero behave as zero", n:0}
 ];
 function renderChecks(){
   document.getElementById("checks").innerHTML = CHECKS.map(c =>
@@ -573,58 +735,148 @@ const refDiv = (A, B) => refNorm(A[0] * B[1], A[1] * B[0]);
 
 function lcg(seed){ let s = BigInt(seed); return () => { s = (s * 6364136223846793005n + 1442695040888963407n) & ((1n << 64n) - 1n); return s; }; }
 
-function runChecks(){
-  let total = 0, failed = false;
+const samePair = (X, Y) => X[0] === Y[0] && X[1] === Y[1];
+const sameFrac = (X, Y) => samePair(X[0], Y[0]) && samePair(X[1], Y[1]);
+function rejects(fn){
+  try{ fn(); }catch(e){ return e instanceof RangeError; }
+  return false;
+}
 
-  /* 1. exhaustive homomorphism */
-  const regs = [];
-  for (let a = -8; a <= 8; a++) for (let b = -8; b <= 8; b++) regs.push([BigInt(a), BigInt(b)]);
-  let n1 = 0;
-  for (const X of regs){
-    const vx = value(X);
-    for (const Y of regs){
-      const vy = value(Y);
-      if (value(regAdd(X, Y)) !== vx + vy || value(regSub(X, Y)) !== vx - vy || value(regMul(X, Y)) !== vx * vy) failed = true;
-      n1 += 3;
-    }
+function runChecks(){
+  let total = 0, anyFailed = false;
+  function finish(idx, n, ok){
+    CHECKS[idx].n = n; CHECKS[idx].state = ok ? "pass" : "fail";
+    total += n; if (!ok) anyFailed = true; renderChecks();
   }
-  CHECKS[0].n = n1; CHECKS[0].state = failed ? "fail" : "pass"; total += n1; renderChecks();
+
+  /* 1. exhaustive: homomorphism, normalisation, normalised product */
+  {
+    let n = 0, ok = true;
+    const regs = [];
+    for (let a = -8; a <= 8; a++) for (let b = -8; b <= 8; b++) regs.push([BigInt(a), BigInt(b)]);
+    for (const X of regs){
+      const vx = value(X), NX = normalize(X);
+      if (!samePair(NX, canonicalize(vx)) || !(NX[1] === ZERO || NX[1] === ONE)) ok = false;
+      n += 1;
+      for (const Y of regs){
+        const vy = value(Y);
+        if (value(regAdd(X, Y)) !== vx + vy || value(regSub(X, Y)) !== vx - vy || value(regMul(X, Y)) !== vx * vy) ok = false;
+        if (!samePair(regMulNorm(X, Y), canonicalize(vx * vy))) ok = false;
+        n += 4;
+      }
+    }
+    finish(0, n, ok);
+  }
 
   /* 2. canonical form */
-  let n2 = 0;
-  for (let i = -5000; i <= 5000; i++){
-    const N = BigInt(i), K = canonicalize(N);
-    if (!(K[1] === ZERO || K[1] === ONE) || value(K) !== N || canonicalize(value(K))[0] !== K[0]) failed = true;
-    n2 += 3;
+  {
+    let n = 0, ok = true;
+    for (let i = -5000; i <= 5000; i++){
+      const N = BigInt(i), K = canonicalize(N);
+      const direct = (i % 2 === 0) ? [N / TWO, ZERO] : [(N - THREE) / TWO, ONE];   // (3a), (3b): exact divisions
+      if (!(K[1] === ZERO || K[1] === ONE) || value(K) !== N || !samePair(normalize(K), K) || !samePair(K, direct)) ok = false;
+      n += 4;
+    }
+    finish(1, n, ok);
   }
-  CHECKS[1].n = n2; CHECKS[1].state = failed ? "fail" : "pass"; total += n2; renderChecks();
 
-  /* 3. differential test */
-  const rnd = lcg(20260713);
-  let n3 = 0;
-  for (let i = 0; i < 1500; i++){
-    const p = rnd() - (1n << 63n), q = (rnd() % (1n << 40n)) + ONE,
-          r = rnd() - (1n << 63n), s = (rnd() % (1n << 40n)) + ONE;
-    const X = fromRatio(p, q), Y = fromRatio(r, s);
-    const A = refNorm(p, q), B = refNorm(r, s);
-    const cmp = (got, want) => { if (got[0] !== want[0] || got[1] !== want[1]) failed = true; };
-    cmp(toRatio([regAdd(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1])]), refAdd(A, B));
-    cmp(toRatio([regSub(regMul(X[0], Y[1]), regMul(Y[0], X[1])), regMul(X[1], Y[1])]), refSub(A, B));
-    cmp(toRatio([regMul(X[0], Y[0]), regMul(X[1], Y[1])]), refMul(A, B));
-    if (r !== ZERO) cmp(toRatio([regMul(X[0], Y[1]), regMul(X[1], Y[0])]), refDiv(A, B));
-    n3 += 4;
+  /* 3. Table 3: normalised product of canonical pairs */
+  {
+    let n = 0, ok = true;
+    for (let i = -20; i <= 20; i++) for (let j = -20; j <= 20; j++){
+      const a = BigInt(i), c = BigInt(j);
+      if (!samePair(regMulNorm([a, ZERO], [c, ZERO]), [TWO*a*c, ZERO])) ok = false;
+      if (!samePair(regMulNorm([a, ZERO], [c, ONE]),  [TWO*a*c + THREE*a, ZERO])) ok = false;
+      if (!samePair(regMulNorm([a, ONE],  [c, ZERO]), [TWO*a*c + THREE*c, ZERO])) ok = false;
+      if (!samePair(regMulNorm([a, ONE],  [c, ONE]),  [TWO*a*c + THREE*a + THREE*c + THREE, ONE])) ok = false;
+      n += 4;
+    }
+    finish(2, n, ok);
   }
-  CHECKS[2].n = n3; CHECKS[2].state = failed ? "fail" : "pass"; total += n3; renderChecks();
 
-  document.getElementById("checks-total").textContent = failed
+  /* 4. differential test */
+  {
+    let n = 0, ok = true;
+    const rnd = lcg(20260713);
+    const scales = [-7n, -3n, -2n, -1n, 2n, 3n, 5n, 11n];
+    const reencode = X => {                       // another representative of the same rational
+      const [p, q] = asRatio(X), m = scales[Number(rnd() % 8n)];
+      const shift = v => { const K = canonicalize(v), k = (rnd() % 19n) - 9n; return [K[0] + THREE * k, K[1] - TWO * k]; };
+      return [shift(p * m), shift(q * m)];
+    };
+    const eq = (got, want) => { if (got[0] !== want[0] || got[1] !== want[1]) ok = false; };
+    for (let i = 0; i < 1500; i++){
+      const p = (rnd() % 50n === ZERO) ? ZERO : rnd() - (1n << 63n), q = (rnd() % (1n << 40n)) + ONE,
+            r = (rnd() % 50n === ZERO) ? ZERO : rnd() - (1n << 63n), s = (rnd() % (1n << 40n)) + ONE;
+      const X = fromRatio(p, q), Y = fromRatio(r, s);
+      const A = refNorm(p, q), B = refNorm(r, s);
+      /* Algorithm 3: normal form, compared as stored */
+      const S = fracAdd(X, Y), D = fracSub(X, Y), M = fracMul(X, Y);
+      eq(asRatio(S), refAdd(A, B)); eq(asRatio(D), refSub(A, B)); eq(asRatio(M), refMul(A, B));
+      let Q = null;
+      if (r !== ZERO){ Q = fracDiv(X, Y); eq(asRatio(Q), refDiv(A, B)); }
+      else if (!rejects(() => fracDiv(X, Y))) ok = false;
+      n += 4;
+      /* lazy formulas: equal values, not equal representations */
+      eq(refNorm(...asRatio(fracAddLazy(X, Y))), refAdd(A, B));
+      eq(refNorm(...asRatio(fracSubLazy(X, Y))), refSub(A, B));
+      eq(refNorm(...asRatio(fracMulLazy(X, Y))), refMul(A, B));
+      if (r !== ZERO) eq(refNorm(...asRatio(fracDivLazy(X, Y))), refDiv(A, B));
+      else if (!rejects(() => fracDivLazy(X, Y))) ok = false;
+      n += 4;
+      /* equality predicate, and independence of the representative */
+      if (fracEq(X, Y) !== (A[0] === B[0] && A[1] === B[1])) ok = false;
+      const X2 = reencode(X), Y2 = reencode(Y);
+      if (!fracEq(X, X2) || !fracEq(Y2, Y)) ok = false;
+      n += 2;
+      if (!sameFrac(fracAdd(X2, Y2), S) || !sameFrac(fracSub(X2, Y2), D) || !sameFrac(fracMul(X2, Y2), M)) ok = false;
+      if (r !== ZERO){ if (!sameFrac(fracDiv(X2, Y2), Q)) ok = false; }
+      else if (!rejects(() => fracDiv(X2, Y2))) ok = false;
+      n += 4;
+    }
+    finish(3, n, ok);
+  }
+
+  /* 5. the boundary of the domain */
+  {
+    let n = 0, ok = true;
+    const half = fromRatio(ONE, TWO), one = fromRatio(ONE, ONE), zero = fromRatio(ZERO, ONE);
+    const ops = [fracAdd, fracSub, fracMul, fracDiv, fracAddLazy, fracSubLazy, fracMulLazy, fracDivLazy];
+    for (let i = -20; i <= 20; i++){
+      if (i === 0) continue;
+      const k = BigInt(i), Z = [THREE * k, -TWO * k];          // represents zero, is not (0, 0)
+      if (value(Z) !== ZERO || (Z[0] === ZERO && Z[1] === ZERO)) ok = false;
+      const bad = [[-ONE, ONE], Z];                             // "1 / 0"
+      if (!rejects(() => reduceFraction(bad[0], bad[1]))) ok = false;
+      if (!rejects(() => fracEq(bad, one)) || !rejects(() => fracEq(one, bad))) ok = false;
+      n += 3;
+      for (const op of ops){
+        if (!rejects(() => op(bad, half)) || !rejects(() => op(half, bad))) ok = false;
+        n += 2;
+      }
+      const ZF = [Z, [-ONE, ONE]];                              // 0/1 with a non-canonical zero
+      if (!rejects(() => fracDiv(half, ZF)) || !rejects(() => fracDivLazy(half, ZF))) ok = false;
+      n += 2;
+      const ZQ = [Z, canonicalize(7n)];                         // 0/7
+      if (!sameFrac(reduceFraction(ZQ[0], ZQ[1]), [[ZERO, ZERO], [-ONE, ONE]])) ok = false;
+      if (!fracEq(ZQ, zero) || fracEq(ZQ, one)) ok = false;
+      if (!sameFrac(fracAdd(half, ZQ), half)) ok = false;
+      n += 4;
+    }
+    finish(4, n, ok);
+  }
+
+  document.getElementById("checks-total").textContent = anyFailed
     ? "A check failed in this browser — please report it as an issue on GitHub."
-    : total.toLocaleString("en-US") + " checks passed in this browser, with no discrepancies. The paper reports 4,245,566 checks from the full Python suite.";
+    : total.toLocaleString("en-US") + " checks passed in this browser, with no discrepancies. The paper reports 7,082,503 checks from the full Python suite.";
 }
 
 /* ---------------- wiring ---------------- */
 buildTape();
 runEncoder();
 runTrace();
+runPair();
+drawSquares(5);
 renderChecks();
 
 document.getElementById("enc-go").addEventListener("click", runEncoder);
@@ -633,6 +885,15 @@ document.getElementById("calc-go").addEventListener("click", runTrace);
 ["fa","fb"].forEach(id => document.getElementById(id)
   .addEventListener("keydown", e => { if (e.key === "Enter") runTrace(); }));
 document.getElementById("op").addEventListener("change", runTrace);
+
+document.getElementById("pair-go").addEventListener("click", runPair);
+["pa","pb"].forEach(id => document.getElementById(id)
+  .addEventListener("keydown", e => { if (e.key === "Enter") runPair(); }));
+const kslider = document.getElementById("kslider");
+kslider.addEventListener("input", () => {
+  document.getElementById("kval").textContent = kslider.value;
+  drawSquares(parseInt(kslider.value, 10));
+});
 
 const slider = document.getElementById("nslider");
 slider.addEventListener("input", () => {
