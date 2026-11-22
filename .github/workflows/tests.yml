@@ -23,4 +23,4 @@ jobs:
       - name: Test suite
         run: python -m unittest discover tests -v
       - name: Exhaustive and differential experiments
-        run: python reproduce_results.py e1 e2 e3 e4
+        run: python reproduce_results.py e1 e2 e2t e3 e4
