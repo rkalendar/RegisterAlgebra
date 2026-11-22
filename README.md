@@ -61,7 +61,7 @@ print(to_ratio(r))            # (1, 1) — exact; the quotient 1/3 is never form
 The integer layer is deliberately small:
 
 ```python
-from rau import canonicalize, value, reg_add, reg_mul
+from rau import canonicalize, value, reg_add, reg_mul, reg_mul_norm
 
 X = canonicalize(7)           # (2, 1),  since 2*2 + 3*1 = 7
 Y = canonicalize(-4)          # (-2, 0)
@@ -153,14 +153,15 @@ field-of-fractions construction — not performance.
 If you use this code, please cite both the software and the article. GitHub's
 "Cite this repository" button renders the entry from `CITATION.cff`.
 
-Software (all versions, resolves to the latest):
+Software (version 1.1.0, GitHub release `v.1.1.0`):
 
 > Kalendar, R. (2026). *RegisterAlgebra: reference implementation of exact
-> register arithmetic* [Computer software]. Zenodo.
+> register arithmetic* (Version 1.1.0) [Computer software]. Zenodo.
 > https://doi.org/10.5281/zenodo.24434511
 
-The DOI above is the concept DOI; version 1.1.0 specifically is archived at
-https://doi.org/10.5281/zenodo.24434511. Releases are also preserved in
+The DOI above identifies version 1.1.0, the version described in the revised
+manuscript. Version 1.0.0 is archived at
+https://doi.org/10.5281/zenodo.21630725. Releases are also preserved in
 [Software Heritage](https://archive.softwareheritage.org/).
 
 ## License
