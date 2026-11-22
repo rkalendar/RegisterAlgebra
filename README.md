@@ -159,8 +159,8 @@ Software (all versions, resolves to the latest):
 > register arithmetic* [Computer software]. Zenodo.
 > https://doi.org/10.5281/zenodo.24434511
 
-The DOI above is the concept DOI; version 1.0.0 specifically is archived at
-https://doi.org/10.5281/zenodo.21630725. Releases are also preserved in
+The DOI above is the concept DOI; version 1.1.0 specifically is archived at
+https://doi.org/10.5281/zenodo.24434511. Releases are also preserved in
 [Software Heritage](https://archive.softwareheritage.org/).
 
 ## License
