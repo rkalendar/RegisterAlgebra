@@ -1,7 +1,7 @@
 # RegisterAlgebra
 
 [![tests](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml/badge.svg)](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21630724.svg)](https://doi.org/10.5281/zenodo.21630724)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21630724.svg)](https://doi.org/10.5281/zenodo.24432373)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 🌐 **Online version:** <https://digitalgens.org/algebra.html>
