@@ -1,7 +1,7 @@
 # RegisterAlgebra
 
 [![tests](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml/badge.svg)](https://github.com/rkalendar/RegisterAlgebra/actions/workflows/tests.yml)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21630725.svg)](https://doi.org/10.5281/zenodo.21630725)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24434511.svg)](https://doi.org/10.5281/zenodo.24434511)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 🌐 **Online version:** <https://digitalgens.org/algebra.html>
@@ -157,7 +157,7 @@ Software (all versions, resolves to the latest):
 
 > Kalendar, R. (2026). *RegisterAlgebra: reference implementation of exact
 > register arithmetic* [Computer software]. Zenodo.
-> https://doi.org/10.5281/zenodo.24432373
+> https://doi.org/10.5281/zenodo.24434511
 
 The DOI above is the concept DOI; version 1.0.0 specifically is archived at
 https://doi.org/10.5281/zenodo.21630725. Releases are also preserved in
