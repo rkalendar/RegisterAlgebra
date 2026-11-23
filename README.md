@@ -40,6 +40,9 @@ This code accompanies the manuscript:
 | `reproduce_results.py` | Regenerates every number reported in Section 11 (Tables 9–12) from a fixed seed |
 | `tests/test_rau.py` | Fast test suite (runs in a few seconds; used by continuous integration) |
 | `results/section11_reference_log.txt` | Frozen output of the full experiment suite, as reported in the paper |
+| `rau_bits.py`, `bench_bits.py`, `tests/test_rau_bits.py` | Shift-and-mask variants of the register operations, their benchmark and their tests — not part of the paper, see [below](#beyond-the-paper-shifts-masks-and-machine-words) |
+| `rau_word.c` | The same operations in C with every register held in one 64-bit machine word — not part of the paper |
+| `results/bench_bits_log.txt`, `results/rau_word_log.txt` | Output of the two benchmarks above |
 
 Requires Python ≥ 3.8. There are no dependencies beyond the standard library.
 Continuous integration runs the worked example, the test suite, and experiments
@@ -113,6 +116,69 @@ Together, 7,082,503 individual checks, with zero discrepancies. Absolute timings
 and, to a lesser degree, ratios depend on the machine; the processor and
 interpreter are printed at the head of `e5`. The reference run in `results/`
 records the machine on which it was produced.
+
+## Beyond the paper: shifts, masks and machine words
+
+The files in this section were added after release 1.1.0. They are not part of
+the manuscript and not in the archived version: every number in the paper comes
+from `rau.py` and `reproduce_results.py`, and `rau.py` is unchanged. They answer
+a follow-up question: how much do bit operations help, and can a register
+operation be brought down to a single machine instruction?
+
+**Python: `rau_bits.py`.** Each function returns exactly the pair its
+counterpart in `rau.py` returns. Scaling by 2 is a left shift and scaling by 3 a
+shift and an addition; halving and parity are `N >> 1` and `N & 1`; and for
+canonical operands, whose second registers are 0 or 1, the products `a*d`, `b*c`
+and `b*d` become the masks `a & -d`, `c & -b` and `b & d`, so that a single
+multiplication remains. Time of the normalised product of two canonical pairs,
+relative to native integer multiplication (median of seven runs):
+
+| Operation | 64-bit | 1,024-bit | 16,384-bit |
+| --- | --- | --- | --- |
+| `reg_mul_norm` (reference, `rau.py`) | 5.40 | 1.56 | 1.06 |
+| `reg_mul_canon` (shifts and masks, one multiplication) | 3.85 | 1.37 | 1.05 |
+| `reg_mul_via_value` (decode, multiply, encode) | 4.86 | 1.45 | 1.04 |
+
+Masks save about 30% at 64 bits and about 12% at 1,024 bits; at 16,384 bits the
+one long multiplication dominates and the variants cannot be told apart.
+Replacing only the scalings by 2 and 3 with shifts changes nothing measurable.
+`canonicalize_bits` is up to four times faster than `canonicalize`, but that
+step is a small fraction of a product.
+
+**C: `rau_word.c`.** Every register is one signed 64-bit word and operand values
+stay below 2^30, so that all products fit. Cost per operation in core cycles
+(fastest of 15 runs; the three runs made agree to within 0.1 cycle):
+
+| Operation | Throughput, cycles | Latency, cycles |
+| --- | --- | --- |
+| Native `x * y` | 1.1 | 3.0 |
+| Formula (5), then normalisation (3d) | 5.6 | 10.8 |
+| Shifts and masks, one multiplication | 3.4 | 7.2 |
+| Decode, multiply, encode | 2.4 | 8.1 |
+| Native `x + y` | 1.1 | 1.1 |
+| Register sum (4), then normalisation (3d) | 2.8 | 2.7 |
+
+Throughput is measured on independent operations, latency on a chain in which
+each result is an operand of the next operation. No register operation runs in
+one cycle. The best variants remain 2.2 to 2.7 times slower than the native
+instruction: the register product contains the same machine multiplication,
+preceded and followed by the instructions that encode and decode the pair.
+Word-size registers also bound the range, and a chain of raw products overflows
+at the sixth squaring of κ(1) = (−1, 1), so only normalised chains are timed.
+
+```bash
+python3 bench_bits.py                                        # about four minutes
+gcc -O2 -fno-tree-vectorize -o rau_word rau_word.c && ./rau_word   # about one minute, x86-64
+```
+
+Both programs verify their variants against the reference before timing
+anything: `rau_word` checks 13.8 million cases against the native result, and
+`./rau_word --dump` prints vectors that can be compared with `rau.py`. The
+figures above were measured on the machine named at the head of each log in
+`results/`. The time-stamp counter of that machine ticks at its nominal rate, so
+cycles were obtained by calibration, taking the latency of a native 64-bit
+multiplication as 3 cycles; the ratios to native do not depend on that
+assumption.
 
 ## What this is, and what it is not
 
