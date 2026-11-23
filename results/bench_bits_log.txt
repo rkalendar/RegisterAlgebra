@@ -1,0 +1,59 @@
+CPython 3.12.3, Intel(R) Xeon(R) Processor @ 2.10GHz, Linux x86_64, 7 independent runs
+
+64-bit operands: native multiplication 0.083 us [0.081-0.131]
+  register product, time relative to native multiplication: median [min-max]
+    canonical in, raw out
+      reg_mul          (reference)                     3.10 [1.87-3.65]
+      reg_mul_bits     (shifts)                        3.26 [1.92-6.82]
+    canonical in, canonical out
+      reg_mul_norm     (reference)                     5.40 [3.36-8.03]
+      reg_mul_canon    (shifts and masks)              3.85 [2.69-4.66]
+      reg_mul_via_value (decode, multiply, encode)     4.86 [2.82-7.72]
+    balanced non-canonical, raw
+      reg_mul          (reference)                     4.90 [2.80-8.00]
+      reg_mul_bits     (shifts)                        4.64 [3.14-8.63]
+  linear-time steps, us: median [min-max]
+      canonicalize                                     0.13 [0.12-0.23]
+      canonicalize_bits                                0.11 [0.11-0.25]
+      normalize                                        0.15 [0.15-0.28]
+      normalize_bits                                   0.15 [0.15-0.17]
+
+1024-bit operands: native multiplication 1.252 us [1.220-1.326]
+  register product, time relative to native multiplication: median [min-max]
+    canonical in, raw out
+      reg_mul          (reference)                     1.32 [1.18-2.37]
+      reg_mul_bits     (shifts)                        1.25 [1.21-2.40]
+    canonical in, canonical out
+      reg_mul_norm     (reference)                     1.56 [1.52-2.24]
+      reg_mul_canon    (shifts and masks)              1.37 [1.34-1.43]
+      reg_mul_via_value (decode, multiply, encode)     1.45 [1.39-1.97]
+    balanced non-canonical, raw
+      reg_mul          (reference)                     4.44 [4.29-4.93]
+      reg_mul_bits     (shifts)                        4.44 [4.33-7.23]
+  linear-time steps, us: median [min-max]
+      canonicalize                                     0.39 [0.38-0.44]
+      canonicalize_bits                                0.16 [0.16-0.34]
+      normalize                                        0.37 [0.36-0.43]
+      normalize_bits                                   0.27 [0.27-0.36]
+
+16384-bit operands: native multiplication 125.391 us [121.064-128.029]
+  register product, time relative to native multiplication: median [min-max]
+    canonical in, raw out
+      reg_mul          (reference)                     1.03 [1.02-1.05]
+      reg_mul_bits     (shifts)                        1.03 [1.00-1.62]
+    canonical in, canonical out
+      reg_mul_norm     (reference)                     1.06 [1.03-1.46]
+      reg_mul_canon    (shifts and masks)              1.05 [0.99-1.43]
+      reg_mul_via_value (decode, multiply, encode)     1.04 [0.99-1.08]
+    balanced non-canonical, raw
+      reg_mul          (reference)                     4.02 [3.94-4.40]
+      reg_mul_bits     (shifts)                        3.97 [3.91-4.41]
+  linear-time steps, us: median [min-max]
+      canonicalize                                     4.72 [4.62-4.92]
+      canonicalize_bits                                1.17 [1.13-1.59]
+      normalize                                        4.00 [3.89-4.40]
+      normalize_bits                                   2.45 [2.38-2.53]
+
+real	3m36.344s
+user	3m34.455s
+sys	0m0.013s
